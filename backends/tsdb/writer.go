@@ -215,6 +215,11 @@ func (a *tsdbAppender) Add(frame frames.Frame) error {
 	return nil
 }
 
+// AddRow adds/updates a row
+func (a *tsdbAppender) AddRow(row *frames.Row) error {
+	return fmt.Errorf("%T does not implement AddRow", a)
+}
+
 func newLset(labels map[string]interface{}, name string, singleCol bool, extraIdx, extraIdxVals []string) (utils.Labels, error) {
 	lset := make(utils.Labels, 0, len(labels))
 	var hadName bool

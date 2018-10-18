@@ -146,6 +146,11 @@ func (a *Appender) Add(frame frames.Frame) error {
 	return nil
 }
 
+// AddRow adds/updates a row
+func (a *Appender) AddRow(row *frames.Row) error {
+	return fmt.Errorf("%T does not implement AddRow", a)
+}
+
 // convert Col name to a v3io valid attr name
 // TODO: may want to also update the name in the Column object
 func validColName(name string) string {

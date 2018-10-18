@@ -101,6 +101,7 @@ type FrameIterator interface {
 // FrameAppender appends frames
 type FrameAppender interface {
 	Add(frame Frame) error
+	AddRow(row *Row) error
 	WaitForComplete(timeout time.Duration) error
 }
 
@@ -236,4 +237,10 @@ func (s *SchemaField) Property(key string) (interface{}, bool) {
 type SchemaKey struct {
 	ShardingKey []string `json:"shardingKey,omitempty"`
 	SortingKey  []string `json:"sortingKey,omitempty"`
+}
+
+// Row is a sparse row
+type Row struct {
+	Index  map[string]interface{} `msgpack:"index,omitempty"`
+	Values map[string]interface{} `msgpack:"row"`
 }

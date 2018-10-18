@@ -412,6 +412,11 @@ func (ca *csvAppender) Add(frame frames.Frame) error {
 	return nil
 }
 
+// AddRow adds/updates a row
+func (ca *csvAppender) AddRow(row *frames.Row) error {
+	return fmt.Errorf("%T does not implement AddRow", ca)
+}
+
 // File Sync
 type syncer interface {
 	Sync() error

@@ -108,24 +108,9 @@ func (api *API) Read(request *frames.ReadRequest, out chan frames.Frame) error {
 
 // Write write data to backend, returns num_frames, num_rows, error
 func (api *API) Write(request *frames.WriteRequest, in chan frames.Frame) (int, int, error) {
-	if request.Backend == "" || request.Table == "" {
-		msg := "missing parameters"
-		api.logger.ErrorWith(msg, "request", request)
-		return -1, -1, fmt.Errorf(msg)
-	}
-
-	api.logger.InfoWith("write request", "request", request)
-	backend, ok := api.backends[request.Backend]
-	if !ok {
-		api.logger.ErrorWith("unkown backend", "name", request.Backend)
-		return -1, -1, fmt.Errorf("unknown backend - %s", request.Backend)
-	}
-
-	appender, err := backend.Write(request)
+	appender, err := api.getAppender(request)
 	if err != nil {
-		msg := "backend Write failed"
-		api.logger.ErrorWith(msg, "error", err)
-		return -1, -1, errors.Wrap(err, msg)
+		return -1, -1, err
 	}
 
 	nFrames, nRows := 0, 0
@@ -156,6 +141,23 @@ func (api *API) Write(request *frames.WriteRequest, in chan frames.Frame) (int, 
 	}
 
 	return nFrames, nRows, nil
+}
+
+// WriteRows writes a stream of rows. Returns number of rows written
+func (api *API) WriteRows(request *frames.WriteRequest, in chan *frames.Row) (int, error) {
+	appender, err := api.getAppender(request)
+	if err != nil {
+		return -1, err
+	}
+
+	nRows := 0
+	for row := range in {
+		if err := appender.AddRow(row); err != nil {
+			return nRows, errors.Wrap(err, "can't write row")
+		}
+	}
+
+	return nRows, nil
 }
 
 // Create will create a new table
@@ -202,6 +204,30 @@ func (api *API) Delete(request *frames.DeleteRequest) error {
 	}
 
 	return nil
+}
+
+func (api *API) getAppender(request *frames.WriteRequest) (frames.FrameAppender, error) {
+	if request.Backend == "" || request.Table == "" {
+		msg := "missing parameters"
+		api.logger.ErrorWith(msg, "request", request)
+		return nil, fmt.Errorf(msg)
+	}
+
+	api.logger.InfoWith("write request", "request", request)
+	backend, ok := api.backends[request.Backend]
+	if !ok {
+		api.logger.ErrorWith("unkown backend", "name", request.Backend)
+		return nil, fmt.Errorf("unknown backend - %s", request.Backend)
+	}
+
+	appender, err := backend.Write(request)
+	if err != nil {
+		msg := "backend Write failed"
+		api.logger.ErrorWith(msg, "error", err)
+		return nil, errors.Wrap(err, msg)
+	}
+
+	return appender, nil
 }
 
 func (api *API) populateQuery(request *frames.ReadRequest) error {

@@ -217,6 +217,7 @@ func (s *Server) handleWrite(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	// FIXME: Split to frames vs rows
 	var (
 		writeError error
 		nFrames    int

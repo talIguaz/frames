@@ -76,6 +76,42 @@ func TestRoundTrip(t *testing.T) {
 	}
 }
 
+func TestRowRoundTrip(t *testing.T) {
+	row := &Row{
+		Index: map[string]interface{}{
+			"i1": 1,
+			"i2": "two",
+		},
+		Values: map[string]interface{}{
+			"col1": 1,
+			"col2": "two",
+			"col3": 3.3,
+		},
+	}
+
+	var buf bytes.Buffer
+	enc := NewEncoder(&buf)
+	if err := enc.EncodeRow(row); err != nil {
+		t.Fatalf("can't encode row")
+	}
+
+	dec := NewDecoder(&buf)
+	row2, err := dec.DecodeRow()
+	if err != nil {
+		t.Fatalf("can't decode row")
+	}
+
+	// TODO: Check values
+	if len(row.Index) != len(row2.Index) {
+		t.Fatalf("index mismatch: %v != %v", row2.Index, row.Index)
+	}
+
+	// TODO: Check map values
+	if len(row.Values) != len(row2.Values) {
+		t.Fatalf("index mismatch: %v != %v", row2.Values, row.Values)
+	}
+}
+
 func createFrame(t *testing.T) Frame {
 	var (
 		columns []Column

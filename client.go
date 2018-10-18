@@ -252,6 +252,15 @@ func (a *streamFrameAppender) Add(frame Frame) error {
 	return nil
 }
 
+// AddRow adds a row
+func (a *streamFrameAppender) AddRow(row *Row) error {
+	if err := a.encoder.EncodeRow(row); err != nil {
+		return errors.Wrap(err, "can't encode row")
+	}
+
+	return nil
+}
+
 func (a *streamFrameAppender) WaitForComplete(timeout time.Duration) error {
 	closer, ok := a.writer.(io.Closer)
 	if !ok {
