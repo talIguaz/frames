@@ -53,7 +53,8 @@ type Column interface {
 	Bools() ([]bool, error)                   // Data as []bool
 	BoolAt(i int) (bool, error)               // bool value at index i
 	Slice(start int, end int) (Column, error) // Slice of data
-	Append(value interface{}) error           // Append a value
+
+	Append(value interface{}) error // Append a value
 }
 
 // Frame is a collection of columns
@@ -65,6 +66,9 @@ type Frame interface {
 	Column(name string) (Column, error)      // Column by name
 	Slice(start int, end int) (Frame, error) // Slice of Frame
 	IterRows() FrameRowIterator              // Iterate over rows
+
+	// Append a row
+	AppendRow(values map[string]interface{}, index map[string]interface{}) error
 }
 
 // FrameRowIterator is an iterator over frame rows

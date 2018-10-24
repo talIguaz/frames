@@ -178,6 +178,36 @@ func (mf *frameImpl) IterRows() FrameRowIterator {
 	return newRowIterator(mf)
 }
 
+func (mf *frameImpl) AppendRow(row map[string]interface{}, index map[string]interface{}) error {
+	cols := colMap(mf.columns)
+	if err := validateRow(row, cols); err != nil {
+		return errors.Wrap(err, "row data mismatch")
+	}
+
+	indices := colMap(mf.indices)
+	if err := validateRow(index, indices); err != nil {
+		return errors.Wrap(err, "index data mismatch")
+	}
+
+	for name, value := range row {
+		col := cols[name]
+		if err := col.Append(value); err != nil {
+			// FIXME: We might be in unstable state here
+			return errors.Wrapf(err, "can't append %v to column %q", value, name)
+		}
+	}
+
+	for name, value := range index {
+		col := indices[name]
+		if err := col.Append(value); err != nil {
+			// FIXME: We might be in unstable state here
+			return errors.Wrapf(err, "can't append %v index %q", value, name)
+		}
+	}
+
+	return nil
+}
+
 // ColumnMessage is a for encoding a column
 type ColumnMessage struct {
 	Slice *SliceColumnMessage `msgpack:"slice,omitempty"`
@@ -368,4 +398,52 @@ func inSlice(name string, names []string) bool {
 	}
 
 	return false
+}
+
+func colMap(columns []Column) map[string]Column {
+	cols := make(map[string]Column)
+	for _, col := range columns {
+		cols[col.Name()] = col
+	}
+
+	return cols
+}
+
+func validateRow(row map[string]interface{}, cols map[string]Column) error {
+	// TODO: Create new columns? Append zero value to missing?
+	if len(row) != len(cols) {
+		return fmt.Errorf("got %d values for %d columns", len(row), len(cols))
+	}
+
+	for name, value := range row {
+		col, ok := cols[name]
+		if !ok {
+			// TODO: Do we want to create a new column?
+			return fmt.Errorf("unknown column %q", name)
+		}
+
+		if dtype := dtypeOf(value); dtype != col.DType() {
+			return fmt.Errorf("type mismatch in column %q, got %s, should be %s", name, dtype, col.DType())
+		}
+	}
+
+	return nil
+}
+
+// TODO: Do we have this already
+func dtypeOf(value interface{}) DType {
+	switch value.(type) {
+	case int:
+		return IntType
+	case float64:
+		return FloatType
+	case string:
+		return StringType
+	case time.Time:
+		return TimeType
+	case bool:
+		return BoolType
+	}
+
+	return nil
 }

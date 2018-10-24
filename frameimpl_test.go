@@ -136,7 +136,32 @@ func TestNewFrameFromRows(t *testing.T) {
 	if len(frame.Indices()) != len(indices) {
 		t.Fatalf("indices len mismatch %d != %d", len(frame.Indices()), len(rows))
 	}
+}
 
+func TestAppendRow(t *testing.T) {
+	rows := []map[string]interface{}{
+		{"x": 1, "y": "a"},
+		{"x": 2, "z": 1.0},
+		{"x": 3, "y": "b", "z": 2.0},
+	}
+
+	indices := []string{"z"}
+	frame, err := NewFrameFromRows(rows, indices)
+	if err != nil {
+		t.Fatalf("can't create - %s", err)
+	}
+
+	prevLen := frame.Len()
+	row := map[string]interface{}{"x": 4, "y": "c"}
+	index := map[string]interface{}{"z": 9.9}
+
+	if err := frame.AppendRow(row, index); err != nil {
+		t.Fatalf("can't append - %s", err)
+	}
+
+	if frame.Len() != prevLen+1 {
+		t.Fatalf("bad length: %d != %d", frame.Len(), prevLen+1)
+	}
 }
 
 func newIntCols(t *testing.T, numCols int, size int) []Column {
