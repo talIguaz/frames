@@ -23,11 +23,8 @@ from subprocess import run
 from sys import executable
 
 
-def should_upload():
-    repo = environ.get('TRAVIS_REPO_SLUG')
-    branch = environ.get('TRAVIS_BRANCH')
-
-    return repo == 'v3io/frames' and branch in ('master', 'development')
+def should_upload(tag):
+    return tag and environ.get('TRAVIS_REPO_SLUG') == "v3io/frames"
 
 
 def git_sha():
@@ -57,7 +54,8 @@ if __name__ == '__main__':
         default='')
     args = parser.parse_args()
 
-    ok = args.force or should_upload()
+    tag = environ.get('TRAVIS_TAG')
+    ok = args.force or should_upload(tag)
     if not ok:
         raise SystemExit('error: wrong branch or repo (try with --force)')
 
