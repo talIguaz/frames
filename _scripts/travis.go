@@ -102,37 +102,45 @@ func buildSha() string {
 func docker() {
 	gitTag := os.Getenv(tagEnv)
 	gitBranch := os.Getenv("TRAVIS_BRANCH")
+	var alias string
+
+	if os.Getenv("TRAVIS_PULL_REQUEST") == "falce" && gitBranch == "development" {
+		alias = "unstable"
+	}
+
+	if gitTag != "" {
+		alias = "latest"
+	}
+
+	if alias == "" {
+		fmt.Printf("skipping build on branch=%q, tag=%q\n", gitBranch, gitTag)
+		return
+	}
+
+	fmt.Printf("building %s\n", alias)
 
 	var tagsToPush []string
-
 	switch gitBranch {
 	case "development":
-		fmt.Println("building unstable")
 		version := buildSha()
-		tag := tagFor("unstable")
+		tag := tagFor(alias)
 		if err := buildDocker(version, tag); err != nil {
 			log.Fatalf("error: can't build docker - %s", err)
 		}
 		tagsToPush = append(tagsToPush, tag)
 	case "master":
-		if gitTag == "" {
-			fmt.Println("skipping non-tag build on master")
-			return
-		}
 		version := gitTag
 		tag := tagFor(version)
 		if err := buildDocker(version, tag); err != nil {
 			log.Fatalf("error: can't build docker - %s", err)
 		}
 		tagsToPush = append(tagsToPush, tag)
-		alias := tagFor("latest")
-		if err := run("docker", "tag", tag, alias); err != nil {
+
+		aliasTag := tagFor(alias)
+		if err := run("docker", "tag", tag, aliasTag); err != nil {
 			log.Fatal("error: can't tag")
 		}
-		tagsToPush = append(tagsToPush, alias)
-	default:
-		fmt.Printf("skipping build on branch %q\n", gitBranch)
-		return
+		tagsToPush = append(tagsToPush, aliasTag)
 	}
 
 	user := os.Getenv("DOCKER_USERNAME")
