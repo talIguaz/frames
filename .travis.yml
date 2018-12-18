@@ -23,6 +23,18 @@ matrix:
     - make test-python
     after_success:
     - make pypi
+  - language: python
+    python: 3.6
+    env:
+    - PATH=/opt/go/bin:${PATH}
+    - GOROOT=/opt/go
+    install:
+    - curl -LO https://dl.google.com/go/go1.11.1.linux-amd64.tar.gz
+    - tar xzf go1.11.1.linux-amd64.tar.gz -C /opt
+    - pip install pipenv
+    - make python-deps
+    script:
+    - make test-python
 env:
   matrix:
   - GO111MODULE=on
