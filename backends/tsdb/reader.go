@@ -21,6 +21,7 @@ such restriction.
 package tsdb
 
 import (
+	"github.com/nuclio/logger"
 	"time"
 
 	"github.com/pkg/errors"
@@ -46,6 +47,8 @@ type tsdbIterator struct {
 	err         error
 	withColumns bool
 	currFrame   frames.Frame
+
+	internalLogger logger.Logger
 }
 
 func (b *Backend) Read(request *frames.ReadRequest) (frames.FrameIterator, error) {
@@ -93,7 +96,7 @@ func (b *Backend) Read(request *frames.ReadRequest) (frames.FrameIterator, error
 		return nil, errors.Wrap(err, "failed to create adapter")
 	}
 
-	iter := tsdbIterator{request: request}
+	iter := tsdbIterator{request: request, internalLogger: b.logger}
 	name := ""
 	if len(request.Proto.Columns) > 0 {
 		name = strings.Join(request.Proto.Columns, ",")
@@ -146,6 +149,12 @@ func oldQuery(adapter *tsdb.V3ioAdapter, request *frames.ReadRequest, from, to, 
 }
 
 func (i *tsdbIterator) Next() bool {
+	startTime := time.Now()
+	defer func(start time.Time) {
+		endTime := time.Now()
+		i.internalLogger.Info("calling next tsdb frame took %v", endTime.Sub(startTime))
+	}(startTime)
+
 	if i.set.NextFrame() {
 		frame, err := i.set.GetFrame()
 		if err != nil {
