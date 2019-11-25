@@ -74,7 +74,6 @@ func NewBackend(logger logger.Logger, httpClient *fasthttp.Client, cfg *frames.B
 }
 
 func (b *Backend) newConfig(session *frames.Session) *config.V3ioConfig {
-
 	cfg := &config.V3ioConfig{
 		WebApiEndpoint: session.Url,
 		Container:      session.Container,
@@ -83,6 +82,7 @@ func (b *Backend) newConfig(session *frames.Session) *config.V3ioConfig {
 		AccessKey:      session.Token,
 		Workers:        b.backendConfig.Workers,
 		LogLevel:       b.framesConfig.Log.Level,
+		QryWorkers:     b.backendConfig.Workers,
 	}
 	return config.WithDefaults(cfg)
 }

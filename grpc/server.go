@@ -128,6 +128,7 @@ func (s *Server) Read(request *pb.ReadRequest, stream pb.Frames_ReadServer) erro
 	var apiError error
 	go func() {
 		defer close(ch)
+		s.logger.Info("got a GRPC request for reading table", "table", request.Table)
 		apiError = s.api.Read(&req, ch)
 		if apiError != nil {
 			s.logger.ErrorWith("API error reading", "error", apiError)
