@@ -18,6 +18,6 @@ require (
 
 replace github.com/xwb1989/sqlparser => github.com/v3io/sqlparser v0.0.0-20190306105200-4d7273501871
 
-replace github.com/v3io/v3io-tsdb => github.com/talIguaz/v3io-tsdb v0.0.0-20190306105200-114aff7c54182bd3e904423a99ce2d9bb4df2a28
+replace github.com/v3io/v3io-tsdb => github.com/talIguaz/v3io-tsdb v0.0.0-20190306105200-8f0eb7557d5f1276258de4b8c1f63ca66e10bb53
 
-replace github.com/v3io/v3io-go => github.com/talIguaz/v3io-go v0.0.0-20190306105200-85098aa0945b7a9912b4fce921f2feca23075704
+replace github.com/v3io/v3io-go => github.com/talIguaz/v3io-go v0.0.0-20190306105200-d94230662dd306410d4f4fa8a798bc54c0220475
